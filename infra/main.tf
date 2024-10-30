@@ -83,7 +83,6 @@ resource "aws_lb_target_group" "app_tg" {
   port     = 8080
   protocol = "HTTP"
   vpc_id   = module.vpc.vpc_id
-
   target_type = "ip"
 
   health_check {
@@ -94,9 +93,13 @@ resource "aws_lb_target_group" "app_tg" {
     unhealthy_threshold = 2
     matcher             = "200-299"
   }
+
+  # Evitar eliminación accidental en dependencias
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
-# Listener para el Load Balancer, con dependencia explícita en el Target Group
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.app_lb.arn
   port              = "80"
@@ -105,6 +108,11 @@ resource "aws_lb_listener" "http" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app_tg.arn
+  }
+
+  # Evitar eliminación accidental en dependencias
+  lifecycle {
+    prevent_destroy = true
   }
 
   depends_on = [aws_lb_target_group.app_tg]
@@ -181,4 +189,10 @@ resource "aws_ecs_service" "app_service" {
   }
 
   depends_on = [aws_lb_listener.http]
+}
+
+# Output para el DNS del Load Balancer
+output "alb_dns" {
+  value = aws_lb.app_lb.dns_name
+  description = "El DNS del Application Load Balancer"
 }
