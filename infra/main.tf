@@ -76,6 +76,7 @@ resource "aws_lb" "app_lb" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = module.vpc.public_subnets
+  ip_address_type    = "dualstack"
 }
 
 resource "aws_lb_target_group" "app_tg" {
