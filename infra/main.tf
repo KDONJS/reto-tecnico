@@ -54,6 +54,14 @@ resource "aws_security_group" "alb_sg" {
 resource "aws_security_group" "ecs_sg" {
   vpc_id = module.vpc.vpc_id
 
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
+    description     = "Allow traffic from ALB"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -97,6 +105,8 @@ resource "aws_lb_listener" "http" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app_tg.arn
   }
+
+  depends_on = [aws_lb.app_lb, aws_lb_target_group.app_tg]
 }
 
 # ECS Cluster
@@ -139,7 +149,7 @@ resource "aws_ecs_task_definition" "app_task" {
   container_definitions = jsonencode([
     {
       name      = "reto-tecnico-container"
-      image     = "${aws_ecr_repository.app_repository.repository_url}:latest"
+      image     = "${aws_ecr_repository.app_repository.repository_url}:${var.image_tag}" # Usa la variable de etiqueta aquí
       cpu       = 256
       memory    = 512
       essential = true
@@ -160,15 +170,18 @@ resource "aws_ecs_service" "app_service" {
   task_definition = aws_ecs_task_definition.app_task.arn
   desired_count   = 1
   launch_type     = "FARGATE"
+
   network_configuration {
     subnets         = module.vpc.public_subnets
     security_groups = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
+
   load_balancer {
     target_group_arn = aws_lb_target_group.app_tg.arn
     container_name   = "reto-tecnico-container"
     container_port   = 80
   }
+
   depends_on = [aws_lb_listener.http]
 }
