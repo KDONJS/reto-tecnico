@@ -77,6 +77,8 @@ resource "aws_lb_target_group" "app_tg" {
   protocol = "HTTP"
   vpc_id   = module.vpc.vpc_id
 
+  target_type = "ip"
+
   health_check {
     path                = "/"
     interval            = 30
