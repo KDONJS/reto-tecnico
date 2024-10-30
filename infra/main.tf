@@ -30,7 +30,6 @@ module "vpc" {
   enable_nat_gateway = false
 }
 
-
 # Security Group para el ALB
 resource "aws_security_group" "alb_sg" {
   vpc_id = module.vpc.vpc_id
@@ -50,7 +49,7 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
-# Security Group para ECS
+# Security Group para ECS, combinado para puertos 80 y 8080
 resource "aws_security_group" "ecs_sg" {
   vpc_id = module.vpc.vpc_id
 
@@ -59,7 +58,15 @@ resource "aws_security_group" "ecs_sg" {
     to_port         = 80
     protocol        = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
-    description     = "Allow traffic from ALB"
+    description     = "Allow traffic from ALB on port 80"
+  }
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow external access on port 8080"
   }
 
   egress {
@@ -81,7 +88,7 @@ resource "aws_lb" "app_lb" {
 
 resource "aws_lb_target_group" "app_tg" {
   name     = "reto-tecnico-tg"
-  port     = 80
+  port     = 8080
   protocol = "HTTP"
   vpc_id   = module.vpc.vpc_id
 
@@ -160,25 +167,6 @@ resource "aws_ecs_task_definition" "app_task" {
   }])
 }
 
-# Ingress adicional para el SG del ECS
-resource "aws_security_group" "ecs_sg" {
-  vpc_id = module.vpc.vpc_id
-
-  ingress {
-    from_port   = 8080 
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] 
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 # ECS Service
 resource "aws_ecs_service" "app_service" {
   name            = "reto-tecnico-service"
@@ -196,7 +184,7 @@ resource "aws_ecs_service" "app_service" {
   load_balancer {
     target_group_arn = aws_lb_target_group.app_tg.arn
     container_name   = "reto-tecnico-container"
-    container_port   = 80
+    container_port   = 8080
   }
 
   depends_on = [aws_lb_listener.http]
