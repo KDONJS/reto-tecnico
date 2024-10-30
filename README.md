@@ -26,8 +26,6 @@ Para iniciar con este proyecto, puedes clonar el repositorio y seguir las instru
 | GitHub            | Última       | Plataforma de repositorios para control de versiones.|
 | GitHub Actions    | Última       | Servicio de integración y entrega continua.        |
 
-Si tienes alguna duda o sugerencia sobre el proyecto, no dudes en levantar un issue.
-
 ---
 
 # ¡Gracias, "Reto Técnico" finalizado!
