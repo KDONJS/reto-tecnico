@@ -1,0 +1,61 @@
+name: Deploy Service
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_and_push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    env:
+      ECR_REPOSITORY: reto-tecnico-repo 
+      AWS_REGION: us-east-1            
+      IMAGE_TAG: 1.0.1                
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Log in to Amazon ECR
+        id: ecr_login
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          region: ${{ env.AWS_REGION }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+
+      - name: Tag Docker image
+        run: |
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.ecr_login.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Push to Amazon ECR
+        run: |
+          docker push ${{ steps.ecr_login.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+
+  deploy_to_ecs:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: build_and_push
+    env:
+      CLUSTER_NAME: reto-tecnico-cluster
+      SERVICE_NAME: reto-tecnico-service 
+      CONTAINER_NAME: reto-tecnico-container
+      AWS_REGION: us-east-1                    
+      ECR_REPOSITORY: reto-tecnico-repo        
+
+    steps:
+      - name: Update ECS service with new image
+        run: |
+          aws ecs update-service \
+            --cluster $CLUSTER_NAME \
+            --service $SERVICE_NAME \
+            --force-new-deployment \
+            --region $AWS_REGION \
+            --desired-count 1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
