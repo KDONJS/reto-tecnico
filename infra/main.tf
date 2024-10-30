@@ -88,11 +88,12 @@ resource "aws_lb_target_group" "app_tg" {
   target_type = "ip"
 
   health_check {
-    path                = "/api/curioso"
+    path                = "/" 
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
     unhealthy_threshold = 2
+    matcher             = "200-299"
   }
 }
 
@@ -146,21 +147,36 @@ resource "aws_ecs_task_definition" "app_task" {
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
-  container_definitions = jsonencode([
-    {
-      name      = "reto-tecnico-container"
-      image     = "${aws_ecr_repository.app_repository.repository_url}:latest"
-      cpu       = 256
-      memory    = 512
-      essential = true
-      portMappings = [
-        {
-          containerPort = 80
-          hostPort      = 80
-        }
-      ]
-    }
-  ])
+  container_definitions = jsonencode([{
+    name      = "reto-tecnico-container"
+    image     = "${aws_ecr_repository.app_repository.repository_url}:latest"
+    cpu       = 256
+    memory    = 512
+    essential = true
+    portMappings = [{
+      containerPort = 8080
+      hostPort      = 8080
+    }]
+  }])
+}
+
+# Ingress adicional para el SG del ECS
+resource "aws_security_group" "ecs_sg" {
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 8080 
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # ECS Service
