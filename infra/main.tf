@@ -32,12 +32,15 @@ module "vpc" {
   enable_nat_gateway = false
 }
 
-# IPv6 CIDR association para las subnets públicas
-resource "aws_ec2_subnet_cidr_block" "ipv6_subnet_public" {
-  count = length(module.vpc.public_subnets)
+# Asociación de IPv6 CIDR para subnets públicas usando el proveedor awscc
+resource "awscc_ec2_subnet_cidr_block" "ipv6_subnet_public_1" {
+  subnet_id       = module.vpc.public_subnets[0]
+  ipv6_cidr_block = "2600:1f10:4018:3800::/64"  # Primer bloque de la VPC
+}
 
-  subnet_id       = module.vpc.public_subnets[count.index]
-  ipv6_cidr_block = cidrsubnet(module.vpc.ipv6_cidr_block, 8, count.index)
+resource "awscc_ec2_subnet_cidr_block" "ipv6_subnet_public_2" {
+  subnet_id       = module.vpc.public_subnets[1]
+  ipv6_cidr_block = "2600:1f10:4018:3801::/64"  # Segundo bloque de la VPC
 }
 
 # Security Group para el ALB
