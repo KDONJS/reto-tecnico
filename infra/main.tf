@@ -49,24 +49,16 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
-# Security Group para ECS, combinado para puertos 80 y 8080
+# Security Group para ECS
 resource "aws_security_group" "ecs_sg" {
   vpc_id = module.vpc.vpc_id
 
   ingress {
-    from_port       = 80
-    to_port         = 80
+    from_port       = 8080
+    to_port         = 8080
     protocol        = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
-    description     = "Allow traffic from ALB on port 80"
-  }
-
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow external access on port 8080"
+    description     = "Allow traffic from ALB"
   }
 
   egress {
@@ -95,7 +87,7 @@ resource "aws_lb_target_group" "app_tg" {
   target_type = "ip"
 
   health_check {
-    path                = "/" 
+    path                = "/"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
@@ -104,6 +96,7 @@ resource "aws_lb_target_group" "app_tg" {
   }
 }
 
+# Listener para el Load Balancer, con dependencia explícita en el Target Group
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.app_lb.arn
   port              = "80"
@@ -114,7 +107,7 @@ resource "aws_lb_listener" "http" {
     target_group_arn = aws_lb_target_group.app_tg.arn
   }
 
-  depends_on = [aws_lb.app_lb, aws_lb_target_group.app_tg]
+  depends_on = [aws_lb_target_group.app_tg] 
 }
 
 # ECS Cluster
