@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=build /app/target/reto-tecnico-0.0.1-SNAPSHOT.jar app.jar
 
 # Exponemos el puerto en el que correrá la aplicación (por defecto, Spring Boot usa el 8080)
-EXPOSE 8080
+EXPOSE 80
 
 # Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]
