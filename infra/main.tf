@@ -34,14 +34,15 @@ module "vpc" {
 
 # Asociación de IPv6 CIDR para subnets públicas usando el proveedor awscc
 resource "awscc_ec2_subnet_cidr_block" "ipv6_subnet_public_1" {
-  subnet_id       = module.vpc.public_subnets[0]
-  ipv6_cidr_block = "2600:1f10:4018:3800::/64"  # Primer bloque de la VPC
+  subnet_id        = module.vpc.public_subnets[0]
+  ipv_6_cidr_block = "2600:1f10:4018:3800::/64"
 }
 
 resource "awscc_ec2_subnet_cidr_block" "ipv6_subnet_public_2" {
-  subnet_id       = module.vpc.public_subnets[1]
-  ipv6_cidr_block = "2600:1f10:4018:3801::/64"  # Segundo bloque de la VPC
+  subnet_id        = module.vpc.public_subnets[1]
+  ipv_6_cidr_block = "2600:1f10:4018:3801::/64"
 }
+
 
 # Security Group para el ALB
 resource "aws_security_group" "alb_sg" {
