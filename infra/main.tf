@@ -149,7 +149,7 @@ resource "aws_ecs_task_definition" "app_task" {
   container_definitions = jsonencode([
     {
       name      = "reto-tecnico-container"
-      image     = "${aws_ecr_repository.app_repository.repository_url}:${var.image_tag}" # Usa la variable de etiqueta aquí
+      image     = "${aws_ecr_repository.app_repository.repository_url}:latest"
       cpu       = 256
       memory    = 512
       essential = true
