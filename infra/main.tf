@@ -19,7 +19,7 @@ resource "aws_ecr_repository" "app_repository" {
 # VPC y subnets
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.14.2"
+  version = "5.0.0"
 
   name = "reto-tecnico-vpc"
   cidr = "10.0.0.0/16"
@@ -29,6 +29,7 @@ module "vpc" {
 
   enable_nat_gateway = false
 }
+
 
 # Security Group para el ALB
 resource "aws_security_group" "alb_sg" {
