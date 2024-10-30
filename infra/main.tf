@@ -24,25 +24,14 @@ module "vpc" {
   name = "reto-tecnico-vpc"
   cidr = "10.0.0.0/16"
   
-  enable_ipv6           = true   
+  enable_ipv6           = true  
+  assign_generated_ipv6_cidr_block = true 
 
   azs             = ["us-east-1a", "us-east-1b"]
   public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
 
   enable_nat_gateway = false
 }
-
-# Asociación de IPv6 CIDR para subnets públicas usando el proveedor awscc
-resource "awscc_ec2_subnet_cidr_block" "ipv6_subnet_public_1" {
-  subnet_id        = module.vpc.public_subnets[0]
-  ipv_6_cidr_block = "2600:1f10:4018:3800::/64"
-}
-
-resource "awscc_ec2_subnet_cidr_block" "ipv6_subnet_public_2" {
-  subnet_id        = module.vpc.public_subnets[1]
-  ipv_6_cidr_block = "2600:1f10:4018:3801::/64"
-}
-
 
 # Security Group para el ALB
 resource "aws_security_group" "alb_sg" {
@@ -53,7 +42,7 @@ resource "aws_security_group" "alb_sg" {
     to_port           = 80
     protocol          = "tcp"
     cidr_blocks       = ["0.0.0.0/0"]
-    ipv6_cidr_blocks  = ["::/0"]
+    ipv6_cidr_blocks  = ["::/0"] 
   }
 
   egress {
@@ -61,7 +50,7 @@ resource "aws_security_group" "alb_sg" {
     to_port           = 0
     protocol          = "-1"
     cidr_blocks       = ["0.0.0.0/0"]
-    ipv6_cidr_blocks  = ["::/0"]
+    ipv6_cidr_blocks  = ["::/0"] 
   }
 }
 
@@ -91,7 +80,7 @@ resource "aws_lb" "app_lb" {
   name               = "reto-tecnico-alb"
   internal           = false
   load_balancer_type = "application"
-  ip_address_type    = "dualstack"  
+  ip_address_type    = "dualstack"   
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = module.vpc.public_subnets
 }
